@@ -1,40 +1,38 @@
 using UnityEngine;
+using static PlayerKeyboard;
 
-public class PlayerKeyboard : MonoBehaviour
+public class PlayerKeyboard : MonoBehaviour, IPlayerInput
 {
-    [SerializeField] private Player _player;
-
     private const string MovementAxis = "Horizontal";
     private const KeyCode JumpKey = KeyCode.Space;
+
+    public event System.Action<float> OnMove;
+    public event System.Action OnMoveStop;
+    public event System.Action OnJump;
+
     private float _lastAxisValue = 0f;
 
     private void Update()
     {
         if (Input.GetKeyDown(JumpKey))
-        {
-            _player.Jump();
-        }
+            OnJump?.Invoke();
 
-        float movement = Input.GetAxisRaw(MovementAxis);
+        float current = Input.GetAxisRaw(MovementAxis);
 
-        if (movement != 0f)
-        {
-            _player.Move(movement);
-        }
+        if (current != 0f)
+            OnMove?.Invoke(current);
 
-        float currentAxis = Input.GetAxisRaw(MovementAxis);
+        if (_lastAxisValue != 0f && current == 0f)
+            OnMoveStop?.Invoke();
 
-        if (_lastAxisValue == 0f && currentAxis != 0f)
-        {
-            _player.Move(movement);
-        }
+        _lastAxisValue = current;
+    }
 
-        if (_lastAxisValue != 0f && currentAxis == 0f)
-        {
-            _player.MoveStop();
-        }
-
-        _lastAxisValue = currentAxis;
+    public interface IPlayerInput
+    {
+        event System.Action<float> OnMove;
+        event System.Action OnMoveStop;
+        event System.Action OnJump;
     }
 }
 

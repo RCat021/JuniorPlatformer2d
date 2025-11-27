@@ -4,10 +4,9 @@ using UnityEngine;
 
 public class Enemy : MonoBehaviour
 {
+    [SerializeField] private EnemyMover _mover;
     [SerializeField] private Transform _target;
-    [SerializeField] private float _speed = 2f;
 
-    private SpriteRenderer _spriteRenderer;
     private Vector2 _startPoint;
     private Vector2 _endPoint;
     private Vector2 _currentTarget;
@@ -16,7 +15,6 @@ public class Enemy : MonoBehaviour
 
     private void Awake()
     {
-        _spriteRenderer = GetComponent<SpriteRenderer>();
         _startPoint = transform.position;
         _endPoint = _target.position;
         _currentTarget = _endPoint;
@@ -27,15 +25,14 @@ public class Enemy : MonoBehaviour
         if (transform.position.IsEnoughClose(_startPoint, _minSqrDistance))
         {
             _currentTarget = _endPoint;
-            _spriteRenderer.flipX = false;
+            _mover.RotateToDefault();
         }
         else if (transform.position.IsEnoughClose(_endPoint, _minSqrDistance))
         {
             _currentTarget = _startPoint;
-            _spriteRenderer.flipX = true;
+            _mover.RotateToAngleY(); ;
         }
 
-        transform.position = Vector2.MoveTowards(transform.position, _currentTarget, _speed * Time.deltaTime);
-
+        _mover.Move(_currentTarget);
     }
 }

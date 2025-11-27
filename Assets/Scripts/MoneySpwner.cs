@@ -1,16 +1,22 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class MoneySpwner : MonoBehaviour
 {
-    [SerializeField] private GameObject _moneyPrefab;
+    [SerializeField] private Money _moneyPrefab;
     [SerializeField] private Transform[] _spawnPoints;
     [SerializeField] private int _moneyCount = 10;
 
     private List<Vector3> _spawnedPositions = new List<Vector3>();
-    private float _minSqrDistance = 0.2f;
+    private List<Transform> _freeSpawnPoints = new List<Transform>();
+    private List<Transform> _takenSpawnPoints = new List<Transform>();
+    private List<Money> _spawnedMoney = new List<Money>();
 
+    private void Awake()
+    {
+        _freeSpawnPoints.AddRange(_spawnPoints);
+    }
     private void Start()
     {
         SpawnMoney();
@@ -18,43 +24,32 @@ public class MoneySpwner : MonoBehaviour
 
     private void SpawnMoney()
     {
+        if(_freeSpawnPoints.Count < _moneyCount)
+        {
+            Debug.LogWarning("Not enough spawn points for the requested money count.");
+            _moneyCount = _freeSpawnPoints.Count;
+        }
+
         for (int i = 0; i < _moneyCount; i++)
         {
-            Vector3 spawnPoint = GetRandomPosition();
-            Instantiate(_moneyPrefab, spawnPoint, Quaternion.identity);
-            _spawnedPositions.Add(spawnPoint);
+            Transform spawnPoint = _freeSpawnPoints[0];
+            _takenSpawnPoints.Add(spawnPoint);
+            _freeSpawnPoints.Remove(spawnPoint);
+
+            var money = Instantiate(_moneyPrefab, spawnPoint.position, Quaternion.identity);
+            _spawnedPositions.Add(spawnPoint.position);
+            _spawnedMoney.Add(money);
+            money.OnDie += () => OnMoneyCollected(money, spawnPoint);
         }
     }
 
-    private Vector3 GetRandomPosition()
+    private void OnMoneyCollected(Money money, Transform spawnPoint)
     {
-        bool isValidPosition = false;
+        _spawnedMoney.Remove(money);
+        _takenSpawnPoints.Remove(spawnPoint);
+        _freeSpawnPoints.Add(spawnPoint);
 
-        while (isValidPosition == false)
-        {
-            int randomIndex = Random.Range(0, _spawnPoints.Length);
-            Vector3 randomPosition = _spawnPoints[randomIndex].position;
-
-            if (IsPositionValid(randomPosition))
-            {
-                isValidPosition = true;
-                return randomPosition;
-            }
-        }
-
-        return Vector3.zero;
-    }
-
-    private bool IsPositionValid(Vector3 position)
-    {
-        foreach (Vector3 spawnedPos in _spawnedPositions)
-        {
-            if ((position - spawnedPos).sqrMagnitude < _minSqrDistance)
-            {
-                return false;
-            }
-        }
-
-        return true;
+        money.OnDie -= () => OnMoneyCollected(money, spawnPoint);
+        Destroy(money.gameObject);
     }
 }
