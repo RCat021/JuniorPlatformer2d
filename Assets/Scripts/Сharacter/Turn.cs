@@ -1,17 +1,17 @@
-using System.Collections;
-using System.Collections.Generic;
+using System;
 using UnityEngine;
 
-public class Enemy : MonoBehaviour
+public class Turn : MonoBehaviour
 {
-    [SerializeField] private EnemyMover _mover;
+    public event Action<RotationType> ComeToTarget;
+
     [SerializeField] private Transform _target;
+    [SerializeField] private float _minSqrDistance = 0.1f;
 
     private Vector2 _startPoint;
     private Vector2 _endPoint;
     private Vector2 _currentTarget;
 
-    private float _minSqrDistance;
 
     private void Awake()
     {
@@ -20,19 +20,25 @@ public class Enemy : MonoBehaviour
         _currentTarget = _endPoint;
     }
 
-    private void Update()
+    public Vector3 GetTarget()
     {
         if (transform.position.IsEnoughClose(_startPoint, _minSqrDistance))
         {
             _currentTarget = _endPoint;
-            _mover.RotateToDefault();
+            ComeToTarget?.Invoke(RotationType.ToDefault);
         }
         else if (transform.position.IsEnoughClose(_endPoint, _minSqrDistance))
         {
             _currentTarget = _startPoint;
-            _mover.RotateToAngleY(); ;
+            ComeToTarget?.Invoke(RotationType.ToAngleY);
         }
 
-        _mover.Move(_currentTarget);
+        return _currentTarget;
+    }
+
+    public enum RotationType
+    {
+        ToDefault,
+        ToAngleY
     }
 }

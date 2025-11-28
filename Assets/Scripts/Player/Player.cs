@@ -2,27 +2,34 @@ using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(PlayerJump))]
-[RequireComponent(typeof(PlayerMover))]
+[RequireComponent(typeof(RigidbodyMover))]
 [RequireComponent(typeof(PlayerIsGround))]
 [RequireComponent(typeof(PlayerAnimtion))]
+[RequireComponent(typeof(PlayerKeyboard))]
+[RequireComponent(typeof(RotationMover))]
+[RequireComponent(typeof(Collector))]
+[RequireComponent(typeof(Wallet))]
 public class Player : MonoBehaviour
 {
-    [SerializeField] private Wallet _wallet;
-    [SerializeField] private PlayerKeyboard _playerKeyboard;
-
+    private Wallet _wallet;
+    private Collector _collector;
+    private PlayerKeyboard _playerKeyboard;
     private PlayerJump _jump;
-    private PlayerMover _move;
+    private RigidbodyMover _mover;
     private PlayerIsGround _isGround;
     private PlayerAnimtion _animator;
-
-    private int _priceMoney = 1;
+    private RotationMover _rotationMover;
 
     private void Awake()
     {
+        _playerKeyboard = GetComponent<PlayerKeyboard>();
         _jump = GetComponent<PlayerJump>();
-        _move = GetComponent<PlayerMover>();
+        _mover = GetComponent<RigidbodyMover>();
         _isGround = GetComponent<PlayerIsGround>();
         _animator = GetComponent<PlayerAnimtion>();
+        _rotationMover = GetComponent<RotationMover>();
+        _collector = GetComponent<Collector>();
+        _wallet = GetComponent<Wallet>();
     }
 
     private void OnEnable()
@@ -30,6 +37,7 @@ public class Player : MonoBehaviour
         _playerKeyboard.OnMove += Move;
         _playerKeyboard.OnMoveStop += MoveStop;
         _playerKeyboard.OnJump += Jump;
+        _collector.AddMoney += AddMoney;
     }
     
     private void OnDisable()
@@ -37,42 +45,34 @@ public class Player : MonoBehaviour
         _playerKeyboard.OnMove -= Move;
         _playerKeyboard.OnMoveStop -= MoveStop;
         _playerKeyboard.OnJump -= Jump;
+        _collector.AddMoney -= AddMoney;
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.gameObject.TryGetComponent(out Money money))
-        {
-            AddMoney(_priceMoney);
-            money.Desroy();
-        }
-    }
-
-    public void Move(float direction)
+    private void Move(float direction)
     {
         _animator.MoveAnimation(true);
-        _move.Move(direction);
+        _mover.Move(direction);
 
         if (direction < 0)
-            _move.RotateToAngleY();
+            _rotationMover.RotateToAngleY();
         else
-            _move.RotateToDefault();
-
+            _rotationMover.RotateToDefault();
     }
 
-    public void MoveStop()
+    private void MoveStop()
     {
         _animator.MoveAnimation(false);
+        _mover.Stop();
     }
 
-    public void Jump()
+    private void Jump()
     {
         if(_isGround.IsGrounded())
             _jump.Jump();
     }
 
-    public void AddMoney(int amount)
+    private void AddMoney()
     {
-        _wallet.AddMoney(amount);
+        _wallet.AddMoney();
     }
 }

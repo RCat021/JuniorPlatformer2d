@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 
-public class MoneySpwner : MonoBehaviour
+public class MoneySpawner : MonoBehaviour
 {
     [SerializeField] private Money _moneyPrefab;
     [SerializeField] private Transform[] _spawnPoints;
@@ -39,7 +39,7 @@ public class MoneySpwner : MonoBehaviour
             var money = Instantiate(_moneyPrefab, spawnPoint.position, Quaternion.identity);
             _spawnedPositions.Add(spawnPoint.position);
             _spawnedMoney.Add(money);
-            money.OnDie += () => OnMoneyCollected(money, spawnPoint);
+            money.OnDie += OnMoneyCollected;
         }
     }
 
@@ -49,7 +49,7 @@ public class MoneySpwner : MonoBehaviour
         _takenSpawnPoints.Remove(spawnPoint);
         _freeSpawnPoints.Add(spawnPoint);
 
-        money.OnDie -= () => OnMoneyCollected(money, spawnPoint);
+        money.OnDie -= OnMoneyCollected;
         Destroy(money.gameObject);
     }
 }
