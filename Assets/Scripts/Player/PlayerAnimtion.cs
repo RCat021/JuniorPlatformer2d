@@ -5,8 +5,9 @@ using UnityEngine;
 [RequireComponent(typeof(Animator))]
 public class PlayerAnimtion : MonoBehaviour
 {
-    private Animator _animator;
     public static readonly int _idRunAnimation = Animator.StringToHash("IsRun");
+
+    private Animator _animator;
 
     private void Awake()
     {

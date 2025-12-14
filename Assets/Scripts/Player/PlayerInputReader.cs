@@ -1,7 +1,7 @@
 using UnityEngine;
-using static PlayerKeyboard;
+using static PlayerInputReader;
 
-public class PlayerKeyboard : MonoBehaviour, IPlayerInput
+public class PlayerInputReader : MonoBehaviour, IPlayerInput
 {
     private const string MovementAxis = "Horizontal";
     private const KeyCode JumpKey = KeyCode.Space;

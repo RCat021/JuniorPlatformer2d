@@ -1,50 +1,50 @@
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof(PlayerJump))]
-[RequireComponent(typeof(RigidbodyMover))]
-[RequireComponent(typeof(PlayerIsGround))]
+[RequireComponent(typeof(JumpController))]
+[RequireComponent(typeof(MoverPhysical))]
+[RequireComponent(typeof(GroundDetector))]
 [RequireComponent(typeof(PlayerAnimtion))]
-[RequireComponent(typeof(PlayerKeyboard))]
-[RequireComponent(typeof(RotationMover))]
+[RequireComponent(typeof(PlayerInputReader))]
+[RequireComponent(typeof(MoverRotation))]
 [RequireComponent(typeof(Collector))]
 [RequireComponent(typeof(Wallet))]
 public class Player : MonoBehaviour
 {
     private Wallet _wallet;
     private Collector _collector;
-    private PlayerKeyboard _playerKeyboard;
-    private PlayerJump _jump;
-    private RigidbodyMover _mover;
-    private PlayerIsGround _isGround;
+    private PlayerInputReader _inputReader;
+    private JumpController _jumper;
+    private MoverPhysical _mover;
+    private GroundDetector _groundDetector;
     private PlayerAnimtion _animator;
-    private RotationMover _rotationMover;
+    private MoverRotation _rotationMover;
 
     private void Awake()
     {
-        _playerKeyboard = GetComponent<PlayerKeyboard>();
-        _jump = GetComponent<PlayerJump>();
-        _mover = GetComponent<RigidbodyMover>();
-        _isGround = GetComponent<PlayerIsGround>();
+        _inputReader = GetComponent<PlayerInputReader>();
+        _jumper = GetComponent<JumpController>();
+        _mover = GetComponent<MoverPhysical>();
+        _groundDetector = GetComponent<GroundDetector>();
         _animator = GetComponent<PlayerAnimtion>();
-        _rotationMover = GetComponent<RotationMover>();
+        _rotationMover = GetComponent<MoverRotation>();
         _collector = GetComponent<Collector>();
         _wallet = GetComponent<Wallet>();
     }
 
     private void OnEnable()
     {
-        _playerKeyboard.OnMove += Move;
-        _playerKeyboard.OnMoveStop += MoveStop;
-        _playerKeyboard.OnJump += Jump;
+        _inputReader.OnMove += Move;
+        _inputReader.OnMoveStop += MoveStop;
+        _inputReader.OnJump += Jump;
         _collector.AddMoney += AddMoney;
     }
     
     private void OnDisable()
     {
-        _playerKeyboard.OnMove -= Move;
-        _playerKeyboard.OnMoveStop -= MoveStop;
-        _playerKeyboard.OnJump -= Jump;
+        _inputReader.OnMove -= Move;
+        _inputReader.OnMoveStop -= MoveStop;
+        _inputReader.OnJump -= Jump;
         _collector.AddMoney -= AddMoney;
     }
 
@@ -53,10 +53,7 @@ public class Player : MonoBehaviour
         _animator.MoveAnimation(true);
         _mover.Move(direction);
 
-        if (direction < 0)
-            _rotationMover.RotateToAngleY();
-        else
-            _rotationMover.RotateToDefault();
+        _rotationMover.FlipByDirection(direction);
     }
 
     private void MoveStop()
@@ -67,8 +64,8 @@ public class Player : MonoBehaviour
 
     private void Jump()
     {
-        if(_isGround.IsGrounded())
-            _jump.Jump();
+        if(_groundDetector.RequestGrounded())
+            _jumper.Jump();
     }
 
     private void AddMoney()
